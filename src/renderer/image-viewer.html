@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>查看图片</title>
+    <link rel="stylesheet" href="./image-viewer.css" />
+  </head>
+  <body>
+    <main class="viewer-shell">
+      <header class="viewer-header">
+        <span id="imageMeta">图片</span>
+        <div class="viewer-actions">
+          <button class="icon-button" id="prevButton" type="button" title="上一张">‹</button>
+          <button class="icon-button" id="zoomOutButton" type="button" title="缩小">−</button>
+          <button class="zoom-indicator" id="zoomText" type="button" title="适应窗口">100%</button>
+          <button class="icon-button" id="zoomInButton" type="button" title="放大">＋</button>
+          <button class="text-button" id="copyButton" type="button">复制</button>
+          <button class="icon-button" id="nextButton" type="button" title="下一张">›</button>
+          <button class="icon-button danger" id="closeButton" type="button" title="关闭">×</button>
+        </div>
+      </header>
+      <section class="viewer-stage" id="viewerStage">
+        <div class="image-canvas" id="imageCanvas">
+          <img id="viewerImage" alt="剪贴板图片" draggable="false" />
+        </div>
+      </section>
+      <div class="viewer-toast" id="viewerToast" hidden>复制成功</div>
+    </main>
+    <script src="./image-viewer.js"></script>
+  </body>
+</html>

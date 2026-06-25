@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>沾沾</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell" id="appShell">
+      <div class="toast" id="toast" hidden>复制成功</div>
+      <header class="topbar">
+        <div class="brand-block">
+          <img class="brand-icon" src="../../assets/app-icon.png" alt="沾沾" />
+          <p id="statusText">本地保存，后台自动记录</p>
+        </div>
+        <div class="topbar-actions">
+          <button class="ghost-button theme-button" id="themeButton" type="button" title="切换主题">换肤</button>
+          <button class="ghost-button" id="settingsButton" type="button">设置</button>
+          <button class="danger-button" id="clearButton" type="button">清空</button>
+        </div>
+      </header>
+
+      <section class="first-tip" id="firstTip" hidden>
+        <div>
+          <strong>连续按两次 Z 呼出剪贴板历史</strong>
+          <span>按 Esc 隐藏，所有数据只保存在本机。</span>
+        </div>
+        <button class="secondary-button" id="firstTipButton" type="button">知道了</button>
+      </section>
+
+      <section class="controls">
+        <input id="searchInput" type="search" placeholder="搜索复制过的文字" autocomplete="off" />
+        <span id="countText">0 条记录</span>
+      </section>
+
+      <section class="category-bar" id="categoryBar" aria-label="历史分类">
+        <button class="active" type="button" data-category="all" aria-pressed="true">
+          <strong>全部</strong>
+          <span>0</span>
+        </button>
+        <button type="button" data-category="image" aria-pressed="false">
+          <strong>图片</strong>
+          <span>0</span>
+        </button>
+        <button type="button" data-category="longText" aria-pressed="false">
+          <strong>大段文案</strong>
+          <span>0</span>
+        </button>
+        <button type="button" data-category="credential" aria-pressed="false">
+          <strong>账号密码</strong>
+          <span>0</span>
+        </button>
+      </section>
+
+      <section class="history-panel">
+        <div class="empty-state" id="emptyState">
+          <h2 id="emptyTitle">还没有记录</h2>
+          <p id="emptyDescription">复制一段文字或一张图片后，这里会自动出现历史。</p>
+        </div>
+        <div class="history-list" id="historyList"></div>
+      </section>
+    </main>
+
+    <template id="itemTemplate">
+      <article class="history-item">
+        <button class="item-main" type="button">
+          <div class="item-content"></div>
+          <time></time>
+        </button>
+        <button class="secondary-button copy-button" type="button" title="复制到剪贴板">复制</button>
+        <button class="icon-button delete-button" type="button" title="删除">×</button>
+      </article>
+    </template>
+
+    <div class="image-modal" id="imageModal" hidden>
+      <div class="image-modal-backdrop" data-close-modal></div>
+      <section class="image-modal-panel" role="dialog" aria-modal="true" aria-label="查看图片">
+        <header class="image-modal-header">
+          <span id="imageModalMeta">图片</span>
+          <div class="modal-actions">
+            <button class="icon-button" id="imagePrevButton" type="button" title="上一张">‹</button>
+            <button class="secondary-button modal-copy-button" id="imageCopyButton" type="button">复制</button>
+            <button class="icon-button" id="imageNextButton" type="button" title="下一张">›</button>
+            <button class="icon-button" id="imageModalClose" type="button" title="关闭">×</button>
+          </div>
+        </header>
+        <div class="image-modal-body">
+          <img id="imageModalImg" alt="剪贴板图片预览" />
+        </div>
+      </section>
+    </div>
+
+    <div class="settings-modal" id="settingsModal" hidden>
+      <div class="image-modal-backdrop" data-close-settings></div>
+      <section class="settings-panel" role="dialog" aria-modal="true" aria-label="设置">
+        <header class="settings-header">
+          <div>
+            <h2>设置</h2>
+            <p>保持轻量，但把关键选择交给你。</p>
+          </div>
+          <button class="icon-button" id="settingsCloseButton" type="button" title="关闭">×</button>
+        </header>
+
+        <div class="settings-body">
+          <section class="setting-row shortcut-row">
+            <span>
+              <strong>呼出快捷键</strong>
+              <small id="shortcutHelp">点自定义后按下组合键，在本行确认生效。</small>
+            </span>
+            <div class="shortcut-settings">
+              <div class="segmented-control" id="shortcutControl" role="group" aria-label="呼出快捷键">
+                <button type="button" data-shortcut="doubleZ">ZZ</button>
+                <button type="button" data-shortcut="altSpace">Alt + Space</button>
+                <button type="button" data-shortcut="custom">自定义</button>
+              </div>
+              <div class="shortcut-draft">
+                <button class="shortcut-recorder" id="customShortcutButton" type="button" title="重新录制组合键">录制</button>
+                <div class="shortcut-actions" id="shortcutActions" hidden>
+                  <button class="shortcut-confirm" id="shortcutConfirmButton" type="button">确认</button>
+                  <button class="shortcut-cancel" id="shortcutCancelButton" type="button">取消</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <label class="setting-row">
+            <span>
+              <strong>最多保存记录</strong>
+              <small>建议 300-500 条，避免数据无限增长。</small>
+            </span>
+            <input id="maxHistoryInput" type="number" min="100" max="2000" step="50" />
+          </label>
+
+          <label class="setting-row">
+            <span>
+              <strong>记录图片</strong>
+              <small>关闭后只记录文字，图片历史不会继续新增。</small>
+            </span>
+            <button class="toggle-switch" id="recordImagesToggle" type="button" role="switch" aria-checked="true">
+              <span></span>
+            </button>
+          </label>
+
+          <section class="data-summary">
+            <h3>数据管理</h3>
+            <div class="summary-grid">
+              <span>总记录</span><strong id="summaryTotal">0</strong>
+              <span>文字</span><strong id="summaryText">0</strong>
+              <span>图片</span><strong id="summaryImages">0</strong>
+              <span>图片占用</span><strong id="summaryImageSize">0 KB</strong>
+            </div>
+            <p id="summaryPath"></p>
+          </section>
+
+          <p class="privacy-note">隐私说明：剪贴板历史只保存在这台电脑，不联网、不上传、不调用外部服务。</p>
+        </div>
+
+        <footer class="settings-footer">
+          <button class="danger-button" id="settingsClearButton" type="button">清空历史</button>
+          <button class="secondary-button" id="settingsSaveButton" type="button">完成</button>
+        </footer>
+      </section>
+    </div>
+
+    <div class="confirm-modal" id="confirmModal" hidden>
+      <div class="image-modal-backdrop" data-close-confirm></div>
+      <section class="confirm-panel" role="dialog" aria-modal="true" aria-label="确认操作">
+        <h2 id="confirmTitle">确认操作</h2>
+        <p id="confirmMessage">这个操作无法撤销。</p>
+        <footer class="confirm-actions">
+          <button class="ghost-button" id="confirmCancelButton" type="button">取消</button>
+          <button class="danger-button" id="confirmOkButton" type="button">确认清空</button>
+        </footer>
+      </section>
+    </div>
+
+    <script src="./renderer.js"></script>
+  </body>
+</html>
